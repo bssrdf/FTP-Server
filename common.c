@@ -1,9 +1,14 @@
 #include "common.h"
+#include "socket_utilities.h"
+
+
+volatile int clients_active = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void increment_clients_count()
 {
         // Lock
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex);		
         clients_active++;
         // Unlock
         pthread_mutex_unlock(&mutex);
@@ -16,6 +21,20 @@ void decrement_clients_count()
         clients_active--;
         // Unlock
         pthread_mutex_unlock(&mutex);
+}
+
+void monitor()
+{
+	while(1)
+	{
+		 
+		time_t current_time;
+        time(&current_time);
+		char *t = ctime(&current_time);
+		if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
+		printf("%s, Count : %d\n", t, clients_active);
+		sleep(2);
+	}
 }
 
 
