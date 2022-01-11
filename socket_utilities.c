@@ -70,6 +70,7 @@ int clean_up_client_data(struct client_s* client)
 	client->file_fd = 0;
 }
 
+extern char* close_con;
 
 int clean_up_client_structure(struct client_s* client)
 {
