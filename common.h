@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define _GNU_SOURCE
 // General
 #include <limits.h>
 #include <sys/resource.h>
@@ -19,21 +20,22 @@
 // Networking
 #include <sys/epoll.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/select.h>
 // ############# Server parameters #############
 
-#define CLIENTS_PER_THREAD 10
-#define TOTAL_NO_THREADS 1000
+#define CLIENTS_PER_THREAD 20
+#define TOTAL_NO_THREADS 4
 #define MAX_EVENTS (2*CLIENTS_PER_THREAD+1)
-#define NO_OF_CORES 24
+#define NO_OF_CORES 4
 
 // #############################################
 
 // Macros
 #define FD_SIZE sizeof(int)
-#define MASTER_PORT 7
+#define MASTER_PORT 7777
 #define TRUE 1
 #define FALSE 0
 #define BACKLOG 100000
@@ -44,8 +46,6 @@
 #define BUFF_SIZE 1024
 #define FILE_NAME_LEN 20
 
-int clients_active = 0;
-pthread_mutex_t mutex;
 
 // Structs
 typedef struct arguments
@@ -62,7 +62,7 @@ struct client_s
 	struct sockaddr_in act_mode_client_addr;
 };
 
-
+void monitor();
 void increment_clients_count();
 
 void decrement_clients_count();
