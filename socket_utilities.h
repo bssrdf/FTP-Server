@@ -1,11 +1,13 @@
 #ifndef UTIL_H
 #define UTIL_H
-#include "common.h"
+//#include "common.h"
 #include "protocol.h"
 
 int read_request(int client_sock, ftp_request_t* request, struct client_s* client);
 
 int clean_up_client_structure(struct client_s* client);
+
+int clean_up_client_data(struct client_s* client);
 
 /* Invoker of this function will retry on error */
 int Connect(int socket, struct sockaddr* addr, int len);

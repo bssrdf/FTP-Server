@@ -1,3 +1,5 @@
+#include "common.h"
+#include "protocol.h"
 #include "socket_utilities.h"
 
 int read_request(int client_sock, ftp_request_t* request, struct client_s* client)
@@ -52,13 +54,10 @@ int read_request(int client_sock, ftp_request_t* request, struct client_s* clien
 	return 0;
 }
 
-int clean_up_client_structure(struct client_s* client)
+
+int clean_up_client_data(struct client_s* client)
 {
-	if( client->client_fd != 0 )
-	{
-		Write(client->client_fd, close_con, strlen(close_con), client);
-		close(client->client_fd);
-	}
+	
 	if( client->data_fd != 0 )
 	{
 		close(client->data_fd);
@@ -66,11 +65,26 @@ int clean_up_client_structure(struct client_s* client)
 	if( client->file_fd != 0 )
 	{
 		close(client->file_fd);
-	}
-	client->client_fd = 0;
+	}	
 	client->data_fd = 0;
 	client->file_fd = 0;
+}
+
+
+int clean_up_client_structure(struct client_s* client)
+{
+	clean_up_client_data(client);
+	
+	if( client->client_fd != 0 )
+	{
+		Write(client->client_fd, close_con, strlen(close_con), client);
+		close(client->client_fd);
+	}
+	
+	client->client_fd = 0;
+	
 	decrement_clients_count();
+	
 }
 
 
