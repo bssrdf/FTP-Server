@@ -7,6 +7,19 @@ struct sockaddr_in master_server_addr;
 
 int num_cores=0;
 
+extern char* error;
+extern char* allow_user;
+extern char* system_str;
+extern char* port_reply;
+extern char* type_ok;
+extern char* close_con;
+extern char* file_error;
+extern char* file_ok;
+extern char* data_open_error;
+extern char* greeting;
+extern char* file_done;
+
+
 int stick_this_thread_to_core(int core_id) {
 	if (core_id < 0 || core_id >= num_cores)
 		return EINVAL;
@@ -17,15 +30,6 @@ int stick_this_thread_to_core(int core_id) {
 
   	 pthread_t current_thread = pthread_self();    
    	return pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
-}
-
-void monitor()
-{
-	while(1)
-	{
-		printf("Count : %d\n",clients_active);
-		sleep(2);
-	}
 }
 
 // connected clients count for each thread
@@ -113,7 +117,8 @@ int handle_one_request(struct client_s* client, int epfd, int client_count,struc
 		Write(client_sock, close_con, strlen(close_con), client);
 		// break and free the client_sock
 		printf("MSG: Client sent QUIT\n");
-		return -1;
+		clean_up_client_structure(client);
+		return 1;
 	}
 	else if( (strcmp(command,"LIST") == 0 ) || (strcmp(command,"RETR") == 0 ))
 	{
@@ -183,13 +188,14 @@ int handle_one_request(struct client_s* client, int epfd, int client_count,struc
 				return -1;
 			}
 			// Now dont look for an event of the client fd until this file is tranferred.
-			ret = epoll_ctl (epfd, EPOLL_CTL_DEL, client_sock, one_event);
+			// we should continue monitoring client fd 
+			/*ret = epoll_ctl (epfd, EPOLL_CTL_DEL, client_sock, one_event);
 			if (ret)
 			{
 				perror ("MSG: epoll_ctl");
 				printf("MSG: ERROR iN ADDING THE DATA FD\n");
 				return -1;
-			}
+			}*/
 		//	printf("Client added\n");
 		}
 	}
@@ -391,7 +397,7 @@ void thread_function(void* arg)
 			{
 				// Serve the FILE
 				int fd_cli_file = clients[cur_cid].file_fd;
-			        int fd_cli_data = clients[cur_cid].data_fd;
+			    int fd_cli_data = clients[cur_cid].data_fd;
 				int fd_cli_control = clients[cur_cid].client_fd;
 				int read_n;
 				//File opened, so write one block of data.
@@ -400,7 +406,18 @@ void thread_function(void* arg)
 					// File is completely read, so close all of the descriptors
 					// Clean up the entries on the structure, so that this is not used again
 					Write(fd_cli_control, file_done, strlen(file_done), &clients[cur_cid]);
-					clean_up_client_structure(&clients[cur_cid]);
+					//clean_up_client_structure(&clients[cur_cid]);
+					clean_up_client_data(&clients[cur_cid]);
+					/*one_event.data.fd = (*clients_count); 
+					one_event.events = EPOLLIN;
+					// Set this fd for reading
+					ret = epoll_ctl (epfd, EPOLL_CTL_ADD, fd_cli_control, &one_event);
+					if (ret)
+					{
+						perror ("epoll_ctl");
+						printf("Unable to add fd to events\n");
+						clean_up_client_structure(&clients[cur_cid]);
+					}*/
 					// printf("Done\n");
 				}
 				else if( read_n == -1 )
@@ -425,6 +442,8 @@ int main()
 {
 	/* Find out number of cores */
 	num_cores = NO_OF_CORES;
+	int reuse = 1;
+
 
 	int total_clients_count = 0;
 	/* Change the current working directory to the FILES folder. */
@@ -445,7 +464,8 @@ int main()
 	struct sockaddr_in server_addr;
 	server_addr.sin_port = htons(21);
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
 	Bind(listen_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	Listen(listen_sock, BACKLOG);
 	
@@ -497,6 +517,7 @@ int main()
 	int master_server = Socket(AF_INET, SOCK_STREAM, 0);
 	master_server_addr.sin_port = htons(MASTER_PORT); // Echo port
 	master_server_addr.sin_family = AF_INET;
+	setsockopt(master_server, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
 	inet_pton(AF_INET, "127.0.0.1", &(master_server_addr.sin_addr));
 	Bind(master_server, (struct sockaddr*)&master_server_addr, sizeof(master_server_addr));
 	Listen(master_server, TOTAL_NO_THREADS);
