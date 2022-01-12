@@ -47,6 +47,9 @@
 #define FILE_NAME_LEN 20
 
 
+extern volatile int clients_active;
+extern pthread_mutex_t mutex;
+
 // Structs
 typedef struct arguments
 {

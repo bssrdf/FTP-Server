@@ -32,8 +32,11 @@ void monitor()
         time(&current_time);
 		char *t = ctime(&current_time);
 		if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
-		printf("%s, Count : %d\n", t, clients_active);
-		sleep(2);
+		printf("%s, Count : %d", t, clients_active);
+		fflush(stdout);
+		printf("\r");
+		
+		sleep(5);
 	}
 }
 
