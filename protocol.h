@@ -5,6 +5,19 @@
 	This header file contains all the protocol header required for the FTP
 */
 
+extern char* error;
+extern char* allow_user;
+extern char* system_str;
+extern char* port_reply;
+extern char* type_ok;
+extern char* close_con;
+extern char* file_error;
+extern char* file_ok;
+extern char* data_open_error;
+extern char* greeting;
+extern char* file_done;
+extern char* close_con;
+
 
 typedef struct ftp_request
 {

@@ -7,18 +7,6 @@ struct sockaddr_in master_server_addr;
 
 int num_cores=0;
 
-extern char* error;
-extern char* allow_user;
-extern char* system_str;
-extern char* port_reply;
-extern char* type_ok;
-extern char* close_con;
-extern char* file_error;
-extern char* file_ok;
-extern char* data_open_error;
-extern char* greeting;
-extern char* file_done;
-
 
 int stick_this_thread_to_core(int core_id) {
 	if (core_id < 0 || core_id >= num_cores)
