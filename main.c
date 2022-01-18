@@ -146,6 +146,13 @@ int handle_one_request(struct client_s* client, int epfd, int client_count,struc
 			return -1;
 		}	
 		sleep(5);
+		int reuse = 1;
+		struct sockaddr_in addr;
+		addr.sin_port = htons(DATA_PORT);
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		setsockopt(data_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
+		Bind(data_sock, (struct sockaddr*)&addr, sizeof(addr));
 		if( connect(data_sock, (struct sockaddr*)&(client->act_mode_client_addr), sizeof(client->act_mode_client_addr)) == -1 )
 		{
 			char ip_dst[15];
@@ -431,7 +438,7 @@ int main()
 	/* Find out number of cores */
 	num_cores = NO_OF_CORES;
 	int reuse = 1;
-
+    int listen_port = LISTEN_PORT;
 
 	int total_clients_count = 0;
 	/* Change the current working directory to the FILES folder. */
@@ -450,7 +457,7 @@ int main()
 	// This is the listen socket on 21
 	int listen_sock = Socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_addr;
-	server_addr.sin_port = htons(21);
+	server_addr.sin_port = htons(listen_port);
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
@@ -538,7 +545,7 @@ int main()
 		slave_fd_array[i] = slave_temp;
 	}
 	printf("All slaves are registered");
-	printf("\nNow, listening on port 21 for clients\n");
+	printf("\nNow, listening on port %d for clients\n", listen_port);
 	// Monitoring thread
 	
 	if( pthread_create(&pid, &attr, (void*)monitor, NULL ) != 0 )

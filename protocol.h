@@ -16,7 +16,6 @@ extern char* file_ok;
 extern char* data_open_error;
 extern char* greeting;
 extern char* file_done;
-extern char* close_con;
 
 
 typedef struct ftp_request

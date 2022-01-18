@@ -36,6 +36,8 @@
 // Macros
 #define FD_SIZE sizeof(int)
 #define MASTER_PORT 7777
+#define LISTEN_PORT 10021
+#define DATA_PORT 10020
 #define TRUE 1
 #define FALSE 0
 #define BACKLOG 100000
